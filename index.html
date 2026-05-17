@@ -301,11 +301,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 <!-- ══ TRADE PANE ══ -->
 <div class="pane on" id="pane-trade">
-<<<<<<< HEAD
-=======
 
   <!-- Direction -->
->>>>>>> 3845559 (add api)
   <div class="frow">
     <label class="lbl">Direction</label>
     <div class="seg">
@@ -313,11 +310,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       <button class="sb" id="dir-s" onclick="setDir('SELL',this)">▼ SHORT</button>
     </div>
   </div>
-<<<<<<< HEAD
-=======
 
   <!-- Order type + leverage -->
->>>>>>> 3845559 (add api)
   <div class="g2">
     <div class="frow">
       <label class="lbl">Order Type</label>
@@ -335,8 +329,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       </div>
     </div>
   </div>
-<<<<<<< HEAD
-=======
 
   <!-- Minimum order info bar -->
   <div id="min-bar" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:.38rem .75rem;margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center">
@@ -345,32 +337,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
   </div>
 
   <!-- Amount + qty -->
->>>>>>> 3845559 (add api)
   <div class="g2">
     <div class="frow">
       <label class="lbl">Amount (USDT)</label>
       <input class="inp" id="trade-usdt" type="number" placeholder="e.g. 5" oninput="calcQty()"/>
     </div>
     <div class="frow">
-<<<<<<< HEAD
-      <label class="lbl">Qty (auto)</label>
-      <input class="inp" id="trade-qty" type="number" placeholder="auto" style="color:var(--text2)"/>
-    </div>
-  </div>
-  <div class="frow" id="limit-price-row" style="display:none">
-    <label class="lbl">Limit Price <span class="use-live" onclick="useLive('trade-limit')">← live</span></label>
-    <input class="inp" id="trade-limit" type="number" placeholder="e.g. 65000" oninput="calcQty()"/>
-  </div>
-  <div id="trade-preview" style="display:none">
-    <div class="rcard">
-      <div class="rrow"><span class="rl">Symbol</span><span class="rv" id="prev-sym">—</span></div>
-      <div class="rrow"><span class="rl">Notional value</span><span class="rv" style="color:var(--blue)" id="prev-notional">—</span></div>
-      <div class="rrow"><span class="rl">Est. margin used</span><span class="rv" id="prev-margin">—</span></div>
-    </div>
-    <div id="trade-warn" class="warn-box" style="display:none"></div>
-  </div>
-  <button class="btn btn-long" id="place-btn" onclick="placeOrder()">Place LONG Order</button>
-=======
       <label class="lbl">Qty (auto-calc)</label>
       <input class="inp" id="trade-qty" type="number" placeholder="auto" style="color:var(--text2)"/>
     </div>
@@ -424,7 +396,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
   <button class="btn btn-long" id="place-btn" onclick="placeOrder()">Place LONG Order</button>
   <p style="font-size:10px;color:var(--text3);text-align:center;margin-top:.4rem">SL and TP orders placed automatically after fill</p>
->>>>>>> 3845559 (add api)
 </div>
 
 <!-- ══ POSITIONS PANE ══ -->
@@ -738,8 +709,6 @@ async function cancelOrder(symbol,orderId){
 }
 
 /* ══════════════════════════════════
-<<<<<<< HEAD
-=======
    MINIMUM ORDER & PRICE PRECISION
 ══════════════════════════════════ */
 const MIN_NOTIONAL={
@@ -770,7 +739,6 @@ function updateMinBar(){
 }
 
 /* ══════════════════════════════════
->>>>>>> 3845559 (add api)
    PLACE ORDER
 ══════════════════════════════════ */
 window.setDir=function(d,btn){
@@ -793,30 +761,6 @@ window.changeLev=function(l,btn){
   btn.parentElement.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('lev-display').textContent=l;
-<<<<<<< HEAD
-  calcQty();
-  setLeverage(S.activeCoin.sym,l);
-};
-window.useLive=function(id){const el=document.getElementById(id);if(el&&S.livePrice>0){el.value=S.livePrice.toFixed(S.livePrice>=100?2:4);calcQty();}};
-window.calcQty=function(){
-  const usdt=parseFloat(document.getElementById('trade-usdt').value)||0;
-  const limitP=parseFloat(document.getElementById('trade-limit').value)||0;
-  const price=S.oType==='LIMIT'&&limitP>0?limitP:(S.livePrice||0);
-  if(!usdt||!price){document.getElementById('trade-preview').style.display='none';document.getElementById('trade-qty').value='';return;}
-  const notional=usdt*S.lev;
-  const rawQty=notional/price;
-  const prec=S.activeCoin.prec;
-  const qty=prec===0?Math.floor(rawQty):parseFloat(rawQty.toFixed(prec));
-  document.getElementById('trade-qty').value=qty;
-  document.getElementById('trade-preview').style.display='';
-  document.getElementById('prev-sym').textContent=S.activeCoin.sym;
-  document.getElementById('prev-notional').textContent='$'+notional.toFixed(2);
-  document.getElementById('prev-margin').textContent='$'+usdt.toFixed(2);
-  const wn=document.getElementById('trade-warn');
-  if(usdt>parseFloat(document.getElementById('ab-bal').textContent.replace('$',''))*0.5){
-    wn.style.display='';wn.textContent='⚠ Using >50% of balance on one trade is very risky.';
-  }else wn.style.display='none';
-=======
   updateMinBar();calcQty();
   setLeverage(S.activeCoin.sym,l);
 };
@@ -924,81 +868,12 @@ window.calcQty=function(){
   }else if(tpP>0&&S.tradeDir==='SELL'&&tpP>=price){
     wn.style.display='';wn.textContent='⚠ Take Profit must be BELOW entry price for SHORT.';
   }else{wn.style.display='none';}
->>>>>>> 3845559 (add api)
 };
 
 async function setLeverage(symbol,leverage){
   try{await api('POST','/fapi/v1/leverage',{symbol,leverage});}catch(e){}
 }
 
-<<<<<<< HEAD
-window.placeOrder=async function(){
-  const qty=parseFloat(document.getElementById('trade-qty').value)||0;
-  if(!qty){toast('Enter amount first','err');return;}
-  const sym=S.activeCoin.sym,side=S.tradeDir,type=S.oType;
-  const params={symbol:sym,side,type,quantity:qty};
-  if(type==='LIMIT'){
-    const lp=parseFloat(document.getElementById('trade-limit').value);
-    if(!lp){toast('Enter limit price','err');return;}
-    params.price=lp;params.timeInForce='GTC';
-  }
-  const btn=document.getElementById('place-btn');
-  btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>Placing...';
-  try{
-    const res=await api('POST','/fapi/v1/order',params);
-    toast(`✓ Order placed: ${side} ${qty} ${sym}`,'ok');
-    document.getElementById('trade-usdt').value='';
-    document.getElementById('trade-qty').value='';
-    document.getElementById('trade-preview').style.display='none';
-    setTimeout(loadAccount,1500);
-  }catch(e){toast('Order error: '+e.message,'err');}
-  btn.disabled=false;btn.textContent=`Place ${S.tradeDir==='BUY'?'LONG':'SHORT'} Order`;
-};
-
-/* ══════════════════════════════════
-   WEBSOCKET — PRICES
-   Spot stream (stream.binance.com) for tickers — always works regardless of API key type.
-   Futures stream (fstream.binance.com) for klines — chart candles.
-══════════════════════════════════ */
-function connectWS(){
-  // Only use spot-compatible coins for the ticker stream (remove 1000PEPE/WIF if on testnet)
-  const tickerCoins=COINS.filter(c=>!['1000pepeusdt','wifusdt'].includes(c.id)||!S.testnet);
-  const streams=tickerCoins.map(c=>c.id+'@miniTicker').join('/');
-  if(ws1)ws1.close();
-  // Spot WebSocket for market data — works for both real and testnet price watching
-  const spotWS='wss://stream.binance.com:9443/stream?streams='+streams;
-  const futWS =(S.testnet?'wss://stream.binancefuture.com':'wss://fstream.binance.com')+'/stream?streams='+streams;
-
-  function tryConnect(url, fallback){
-    const ws=new WebSocket(url);
-    ws.onopen=()=>{ws1=ws;setDot(true);wsRetry=0;console.log('WS connected:',url);};
-    ws.onclose=()=>{setDot(false);if(fallback&&wsRetry===0){tryConnect(fallback,null);}else{setTimeout(connectWS,Math.min(30000,3000*(++wsRetry)));}};
-    ws.onerror=()=>{};
-    ws.onmessage=handleTickerMsg;
-  }
-  tryConnect(spotWS, futWS);
-  connectKlineWS(S.tf);
-}
-
-function handleTickerMsg(e){
-  try{
-    const pkt=JSON.parse(e.data),d=pkt.data;
-    if(!d||!pkt.stream)return;
-    const sid=pkt.stream.split('@')[0];
-    const coin=coinMap[sid];if(!coin)return;
-    const price=+d.c,open=+d.o;
-    tData[sid]={price,chg:(price-open)/open*100,h:+d.h,l:+d.l,v:+d.v};
-    updateCard(sid);
-    if(sid===S.activeCoin.id){
-      S.livePricePrev=S.livePrice;S.livePrice=price;
-      updateTicker(d);
-      if(S.candles.length){
-        const last=S.candles[S.candles.length-1];
-        last.c=price;last.h=Math.max(last.h,price);last.l=Math.min(last.l,price);
-      }
-      drawChart();updateRSI();
-    }
-=======
 // Place TP and SL orders after main fill
 async function placeTPSL(sym, closeSide, slP, tpP){
   const dp=priceDp(sym);
@@ -1139,7 +1014,6 @@ function handleTickerMsg(e){
       }
       drawChart();updateRSI();
     }
->>>>>>> 3845559 (add api)
   }catch(err){}
 }
 
@@ -1221,11 +1095,7 @@ function selectCoin(c){
   const card=document.getElementById('card-'+c.id);
   if(card){card.classList.add('sel');card.scrollIntoView({inline:'center',behavior:'smooth'});}
   fetchCandles(S.tf);connectKlineWS(S.tf);
-<<<<<<< HEAD
-  calcQty();
-=======
   calcQty();updateMinBar();
->>>>>>> 3845559 (add api)
 }
 
 /* ══════════════════════════════════
@@ -1509,10 +1379,7 @@ function init(){
   loadAccount();
   setInterval(loadAccount,30000);
   document.getElementById('lev-display').textContent=S.lev;
-<<<<<<< HEAD
-=======
   updateMinBar();
->>>>>>> 3845559 (add api)
 }
 
 loadStoredKeys();
