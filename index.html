@@ -301,6 +301,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 <!-- ══ TRADE PANE ══ -->
 <div class="pane on" id="pane-trade">
+<<<<<<< HEAD
+=======
+
+  <!-- Direction -->
+>>>>>>> 3845559 (add api)
   <div class="frow">
     <label class="lbl">Direction</label>
     <div class="seg">
@@ -308,6 +313,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       <button class="sb" id="dir-s" onclick="setDir('SELL',this)">▼ SHORT</button>
     </div>
   </div>
+<<<<<<< HEAD
+=======
+
+  <!-- Order type + leverage -->
+>>>>>>> 3845559 (add api)
   <div class="g2">
     <div class="frow">
       <label class="lbl">Order Type</label>
@@ -325,12 +335,24 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       </div>
     </div>
   </div>
+<<<<<<< HEAD
+=======
+
+  <!-- Minimum order info bar -->
+  <div id="min-bar" style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:.38rem .75rem;margin-bottom:.65rem;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:11px;color:var(--text2)">Min order: <b id="min-usdt" style="color:var(--text)">—</b> USDT margin</span>
+    <span style="font-size:11px;color:var(--text2)">Min qty: <b id="min-qty" style="color:var(--text)">—</b></span>
+  </div>
+
+  <!-- Amount + qty -->
+>>>>>>> 3845559 (add api)
   <div class="g2">
     <div class="frow">
       <label class="lbl">Amount (USDT)</label>
       <input class="inp" id="trade-usdt" type="number" placeholder="e.g. 5" oninput="calcQty()"/>
     </div>
     <div class="frow">
+<<<<<<< HEAD
       <label class="lbl">Qty (auto)</label>
       <input class="inp" id="trade-qty" type="number" placeholder="auto" style="color:var(--text2)"/>
     </div>
@@ -348,6 +370,61 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div id="trade-warn" class="warn-box" style="display:none"></div>
   </div>
   <button class="btn btn-long" id="place-btn" onclick="placeOrder()">Place LONG Order</button>
+=======
+      <label class="lbl">Qty (auto-calc)</label>
+      <input class="inp" id="trade-qty" type="number" placeholder="auto" style="color:var(--text2)"/>
+    </div>
+  </div>
+
+  <!-- Limit price (visible only for limit orders) -->
+  <div class="frow" id="limit-price-row" style="display:none">
+    <label class="lbl">Limit Price <span class="use-live" onclick="useLive('trade-limit')">← live</span></label>
+    <input class="inp" id="trade-limit" type="number" placeholder="e.g. 79000" oninput="calcQty()"/>
+  </div>
+
+  <!-- Stop Loss + Take Profit -->
+  <div class="g2">
+    <div class="frow">
+      <label class="lbl">
+        Stop Loss
+        <span class="use-live" onclick="autoSL()">← auto 1%</span>
+      </label>
+      <input class="inp" id="trade-sl" type="number" placeholder="e.g. 78200" oninput="calcQty()" style="border-color:rgba(239,83,80,.3)"/>
+    </div>
+    <div class="frow">
+      <label class="lbl">
+        Take Profit
+        <span class="use-live" onclick="autoTP()">← auto 3R</span>
+      </label>
+      <input class="inp" id="trade-tp" type="number" placeholder="e.g. 82200" oninput="calcQty()" style="border-color:rgba(38,166,154,.3)"/>
+    </div>
+  </div>
+
+  <!-- Preview card -->
+  <div id="trade-preview" style="display:none">
+    <div class="rcard">
+      <div class="rrow"><span class="rl">Symbol</span><span class="rv" id="prev-sym">—</span></div>
+      <div class="rrow"><span class="rl">Notional</span><span class="rv" style="color:var(--blue)" id="prev-notional">—</span></div>
+      <div class="rrow"><span class="rl">Margin used</span><span class="rv" id="prev-margin">—</span></div>
+      <div class="rrow" id="prev-sl-row" style="display:none">
+        <span class="rl">Stop Loss order</span>
+        <span class="rv" style="color:var(--red)" id="prev-sl-val">—</span>
+      </div>
+      <div class="rrow" id="prev-tp-row" style="display:none">
+        <span class="rl">Take Profit order</span>
+        <span class="rv" style="color:var(--green)" id="prev-tp-val">—</span>
+      </div>
+      <div class="rrow" id="prev-rr-row" style="display:none;margin-top:.3rem;padding-top:.3rem;border-top:0.5px solid var(--border)">
+        <span class="rl">Risk : Reward</span>
+        <span class="rv" id="prev-rr-val">—</span>
+      </div>
+    </div>
+    <div id="trade-warn" class="warn-box" style="display:none"></div>
+  </div>
+
+  <button class="btn btn-long" id="place-btn" onclick="placeOrder()">Place LONG Order</button>
+  <p style="font-size:10px;color:var(--text3);text-align:center;margin-top:.4rem">SL and TP orders placed automatically after fill</p>
+>>>>>>> 3845559 (add api)
 </div>
 
 <!-- ══ POSITIONS PANE ══ -->
@@ -661,6 +738,39 @@ async function cancelOrder(symbol,orderId){
 }
 
 /* ══════════════════════════════════
+<<<<<<< HEAD
+=======
+   MINIMUM ORDER & PRICE PRECISION
+══════════════════════════════════ */
+const MIN_NOTIONAL={
+  BTCUSDT:5,ETHUSDT:5,SOLUSDT:5,BNBUSDT:5,
+  XRPUSDT:5,DOGEUSDT:5,LINKUSDT:5,AVAXUSDT:5,
+  '1000PEPEUSDT':5,WIFUSDT:5
+};
+const MIN_QTY={
+  BTCUSDT:0.001,ETHUSDT:0.001,SOLUSDT:0.1,BNBUSDT:0.01,
+  XRPUSDT:1,DOGEUSDT:1,LINKUSDT:0.1,AVAXUSDT:0.1,
+  '1000PEPEUSDT':1,WIFUSDT:0.1
+};
+const PRICE_PREC={
+  BTCUSDT:1,ETHUSDT:2,SOLUSDT:2,BNBUSDT:2,
+  XRPUSDT:4,DOGEUSDT:5,LINKUSDT:3,AVAXUSDT:2,
+  '1000PEPEUSDT':7,WIFUSDT:4
+};
+
+function priceDp(sym){ return PRICE_PREC[sym]||2; }
+
+function updateMinBar(){
+  const sym=S.activeCoin.sym;
+  const minN=MIN_NOTIONAL[sym]||5;
+  const minQ=MIN_QTY[sym]||0.001;
+  const minMargin=(minN/S.lev).toFixed(4);
+  document.getElementById('min-usdt').textContent=minMargin;
+  document.getElementById('min-qty').textContent=minQ;
+}
+
+/* ══════════════════════════════════
+>>>>>>> 3845559 (add api)
    PLACE ORDER
 ══════════════════════════════════ */
 window.setDir=function(d,btn){
@@ -683,6 +793,7 @@ window.changeLev=function(l,btn){
   btn.parentElement.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('lev-display').textContent=l;
+<<<<<<< HEAD
   calcQty();
   setLeverage(S.activeCoin.sym,l);
 };
@@ -705,12 +816,122 @@ window.calcQty=function(){
   if(usdt>parseFloat(document.getElementById('ab-bal').textContent.replace('$',''))*0.5){
     wn.style.display='';wn.textContent='⚠ Using >50% of balance on one trade is very risky.';
   }else wn.style.display='none';
+=======
+  updateMinBar();calcQty();
+  setLeverage(S.activeCoin.sym,l);
+};
+window.useLive=function(id){
+  const el=document.getElementById(id);
+  if(el&&S.livePrice>0){el.value=S.livePrice.toFixed(priceDp(S.activeCoin.sym));calcQty();}
+};
+
+// Auto fill SL = 1% against direction
+window.autoSL=function(){
+  const price=S.livePrice||0;if(!price)return;
+  const dp=priceDp(S.activeCoin.sym);
+  const sl=S.tradeDir==='BUY'
+    ?(price*0.99).toFixed(dp)
+    :(price*1.01).toFixed(dp);
+  document.getElementById('trade-sl').value=sl;
+  calcQty();
+};
+
+// Auto fill TP = 3R from entry based on SL distance
+window.autoTP=function(){
+  const sl=parseFloat(document.getElementById('trade-sl').value)||0;
+  const price=S.livePrice||0;
+  if(!price||!sl)return;
+  const dp=priceDp(S.activeCoin.sym);
+  const risk=Math.abs(price-sl);
+  const tp=S.tradeDir==='BUY'
+    ?(price+risk*3).toFixed(dp)
+    :(price-risk*3).toFixed(dp);
+  document.getElementById('trade-tp').value=tp;
+  calcQty();
+};
+
+window.calcQty=function(){
+  const sym=S.activeCoin.sym;
+  const usdt=parseFloat(document.getElementById('trade-usdt').value)||0;
+  const limitP=parseFloat(document.getElementById('trade-limit').value)||0;
+  const price=S.oType==='LIMIT'&&limitP>0?limitP:(S.livePrice||0);
+  const slP=parseFloat(document.getElementById('trade-sl').value)||0;
+  const tpP=parseFloat(document.getElementById('trade-tp').value)||0;
+  const minN=MIN_NOTIONAL[sym]||5;
+  const minMargin=minN/S.lev;
+
+  // Always update min bar
+  updateMinBar();
+
+  if(!usdt||!price){
+    document.getElementById('trade-preview').style.display='none';
+    document.getElementById('trade-qty').value='';
+    return;
+  }
+
+  const notional=usdt*S.lev;
+  const prec=S.activeCoin.prec;
+  const rawQty=notional/price;
+  const qty=prec===0?Math.floor(rawQty):parseFloat(rawQty.toFixed(prec));
+  document.getElementById('trade-qty').value=qty;
+  document.getElementById('trade-preview').style.display='';
+  document.getElementById('prev-sym').textContent=sym+' × '+S.lev+'x';
+  document.getElementById('prev-notional').textContent='$'+notional.toFixed(2);
+  document.getElementById('prev-margin').textContent='$'+usdt.toFixed(2);
+
+  // SL preview
+  const slRow=document.getElementById('prev-sl-row');
+  const tpRow=document.getElementById('prev-tp-row');
+  const rrRow=document.getElementById('prev-rr-row');
+  const dp=priceDp(sym);
+
+  if(slP>0){
+    slRow.style.display='';
+    const slLoss=Math.abs(price-slP)/price*notional;
+    document.getElementById('prev-sl-val').textContent=fP(slP,true)+' (–$'+slLoss.toFixed(3)+')';
+  }else{slRow.style.display='none';}
+
+  if(tpP>0){
+    tpRow.style.display='';
+    const tpGain=Math.abs(tpP-price)/price*notional;
+    document.getElementById('prev-tp-val').textContent=fP(tpP,true)+' (+$'+tpGain.toFixed(3)+')';
+  }else{tpRow.style.display='none';}
+
+  if(slP>0&&tpP>0){
+    rrRow.style.display='';
+    const risk=Math.abs(price-slP);
+    const reward=Math.abs(tpP-price);
+    const rr=(reward/risk).toFixed(2);
+    const rrEl=document.getElementById('prev-rr-val');
+    rrEl.textContent='1 : '+rr;
+    rrEl.style.color=parseFloat(rr)>=2?'var(--green)':parseFloat(rr)>=1?'var(--amber)':'var(--red)';
+  }else{rrRow.style.display='none';}
+
+  // Warnings
+  const wn=document.getElementById('trade-warn');
+  const bal=parseFloat(document.getElementById('ab-bal').textContent.replace(/[$,]/g,''))||0;
+  if(usdt<minMargin){
+    wn.style.display='';
+    wn.textContent=`⚠ Below minimum: need at least $${minMargin.toFixed(4)} USDT (${minN} USDT notional ÷ ${S.lev}x)`;
+  }else if(bal>0&&usdt>bal*0.5){
+    wn.style.display='';wn.textContent='⚠ Using >50% of balance on one trade is very risky.';
+  }else if(slP>0&&S.tradeDir==='BUY'&&slP>=price){
+    wn.style.display='';wn.textContent='⚠ Stop Loss must be BELOW entry price for LONG.';
+  }else if(slP>0&&S.tradeDir==='SELL'&&slP<=price){
+    wn.style.display='';wn.textContent='⚠ Stop Loss must be ABOVE entry price for SHORT.';
+  }else if(tpP>0&&S.tradeDir==='BUY'&&tpP<=price){
+    wn.style.display='';wn.textContent='⚠ Take Profit must be ABOVE entry price for LONG.';
+  }else if(tpP>0&&S.tradeDir==='SELL'&&tpP>=price){
+    wn.style.display='';wn.textContent='⚠ Take Profit must be BELOW entry price for SHORT.';
+  }else{wn.style.display='none';}
+>>>>>>> 3845559 (add api)
 };
 
 async function setLeverage(symbol,leverage){
   try{await api('POST','/fapi/v1/leverage',{symbol,leverage});}catch(e){}
 }
 
+<<<<<<< HEAD
 window.placeOrder=async function(){
   const qty=parseFloat(document.getElementById('trade-qty').value)||0;
   if(!qty){toast('Enter amount first','err');return;}
@@ -777,6 +998,148 @@ function handleTickerMsg(e){
       }
       drawChart();updateRSI();
     }
+=======
+// Place TP and SL orders after main fill
+async function placeTPSL(sym, closeSide, slP, tpP){
+  const dp=priceDp(sym);
+  const results=[];
+
+  if(slP>0){
+    try{
+      await api('POST','/fapi/v1/order',{
+        symbol:sym, side:closeSide,
+        type:'STOP_MARKET',
+        stopPrice:parseFloat(slP).toFixed(dp),
+        closePosition:'true',
+        workingType:'MARK_PRICE',
+        priceProtect:'TRUE'
+      });
+      results.push('SL ✓');
+    }catch(e){results.push('SL ✗ '+e.message);}
+  }
+
+  if(tpP>0){
+    try{
+      await api('POST','/fapi/v1/order',{
+        symbol:sym, side:closeSide,
+        type:'TAKE_PROFIT_MARKET',
+        stopPrice:parseFloat(tpP).toFixed(dp),
+        closePosition:'true',
+        workingType:'MARK_PRICE',
+        priceProtect:'TRUE'
+      });
+      results.push('TP ✓');
+    }catch(e){results.push('TP ✗ '+e.message);}
+  }
+
+  return results;
+}
+
+window.placeOrder=async function(){
+  const qty=parseFloat(document.getElementById('trade-qty').value)||0;
+  if(!qty){toast('Enter amount first','err');return;}
+
+  const sym=S.activeCoin.sym;
+  const side=S.tradeDir;
+  const type=S.oType;
+  const slP=parseFloat(document.getElementById('trade-sl').value)||0;
+  const tpP=parseFloat(document.getElementById('trade-tp').value)||0;
+  const closeSide=side==='BUY'?'SELL':'BUY';
+  const price=S.livePrice||0;
+
+  // Validate SL/TP direction
+  if(slP>0&&side==='BUY'&&slP>=price){toast('SL must be below current price for LONG','err');return;}
+  if(slP>0&&side==='SELL'&&slP<=price){toast('SL must be above current price for SHORT','err');return;}
+  if(tpP>0&&side==='BUY'&&tpP<=price){toast('TP must be above current price for LONG','err');return;}
+  if(tpP>0&&side==='SELL'&&tpP>=price){toast('TP must be below current price for SHORT','err');return;}
+
+  // Min order check
+  const minN=MIN_NOTIONAL[sym]||5;
+  const notional=qty*(price||1);
+  if(notional<minN){toast(`Min notional is $${minN} USDT — increase amount`,'err');return;}
+
+  const btn=document.getElementById('place-btn');
+  btn.disabled=true;btn.innerHTML='<span class="loading-spin"></span>Placing...';
+
+  try{
+    // 1. Place main order
+    const params={symbol:sym,side,type,quantity:qty};
+    if(type==='LIMIT'){
+      const lp=parseFloat(document.getElementById('trade-limit').value);
+      if(!lp){toast('Enter limit price','err');btn.disabled=false;btn.textContent=`Place ${side==='BUY'?'LONG':'SHORT'} Order`;return;}
+      params.price=parseFloat(lp).toFixed(priceDp(sym));
+      params.timeInForce='GTC';
+    }
+    await api('POST','/fapi/v1/order',params);
+
+    // 2. Place SL / TP orders
+    let extra='';
+    if(slP>0||tpP>0){
+      btn.innerHTML='<span class="loading-spin"></span>Setting SL/TP...';
+      const res=await placeTPSL(sym,closeSide,slP,tpP);
+      extra=' · '+res.join(' · ');
+    }
+
+    toast(`✓ ${side==='BUY'?'LONG':'SHORT'} ${qty} ${sym}${extra}`,'ok');
+
+    // Reset form
+    document.getElementById('trade-usdt').value='';
+    document.getElementById('trade-qty').value='';
+    document.getElementById('trade-sl').value='';
+    document.getElementById('trade-tp').value='';
+    document.getElementById('trade-preview').style.display='none';
+    setTimeout(loadAccount,1500);
+
+  }catch(e){toast('Order error: '+e.message,'err');}
+
+  btn.disabled=false;
+  btn.textContent=`Place ${S.tradeDir==='BUY'?'LONG':'SHORT'} Order`;
+};
+
+/* ══════════════════════════════════
+   WEBSOCKET — PRICES
+   Spot stream (stream.binance.com) for tickers — always works regardless of API key type.
+   Futures stream (fstream.binance.com) for klines — chart candles.
+══════════════════════════════════ */
+function connectWS(){
+  // Only use spot-compatible coins for the ticker stream (remove 1000PEPE/WIF if on testnet)
+  const tickerCoins=COINS.filter(c=>!['1000pepeusdt','wifusdt'].includes(c.id)||!S.testnet);
+  const streams=tickerCoins.map(c=>c.id+'@miniTicker').join('/');
+  if(ws1)ws1.close();
+  // Spot WebSocket for market data — works for both real and testnet price watching
+  const spotWS='wss://stream.binance.com:9443/stream?streams='+streams;
+  const futWS =(S.testnet?'wss://stream.binancefuture.com':'wss://fstream.binance.com')+'/stream?streams='+streams;
+
+  function tryConnect(url, fallback){
+    const ws=new WebSocket(url);
+    ws.onopen=()=>{ws1=ws;setDot(true);wsRetry=0;console.log('WS connected:',url);};
+    ws.onclose=()=>{setDot(false);if(fallback&&wsRetry===0){tryConnect(fallback,null);}else{setTimeout(connectWS,Math.min(30000,3000*(++wsRetry)));}};
+    ws.onerror=()=>{};
+    ws.onmessage=handleTickerMsg;
+  }
+  tryConnect(spotWS, futWS);
+  connectKlineWS(S.tf);
+}
+
+function handleTickerMsg(e){
+  try{
+    const pkt=JSON.parse(e.data),d=pkt.data;
+    if(!d||!pkt.stream)return;
+    const sid=pkt.stream.split('@')[0];
+    const coin=coinMap[sid];if(!coin)return;
+    const price=+d.c,open=+d.o;
+    tData[sid]={price,chg:(price-open)/open*100,h:+d.h,l:+d.l,v:+d.v};
+    updateCard(sid);
+    if(sid===S.activeCoin.id){
+      S.livePricePrev=S.livePrice;S.livePrice=price;
+      updateTicker(d);
+      if(S.candles.length){
+        const last=S.candles[S.candles.length-1];
+        last.c=price;last.h=Math.max(last.h,price);last.l=Math.min(last.l,price);
+      }
+      drawChart();updateRSI();
+    }
+>>>>>>> 3845559 (add api)
   }catch(err){}
 }
 
@@ -858,7 +1221,11 @@ function selectCoin(c){
   const card=document.getElementById('card-'+c.id);
   if(card){card.classList.add('sel');card.scrollIntoView({inline:'center',behavior:'smooth'});}
   fetchCandles(S.tf);connectKlineWS(S.tf);
+<<<<<<< HEAD
   calcQty();
+=======
+  calcQty();updateMinBar();
+>>>>>>> 3845559 (add api)
 }
 
 /* ══════════════════════════════════
@@ -1142,6 +1509,10 @@ function init(){
   loadAccount();
   setInterval(loadAccount,30000);
   document.getElementById('lev-display').textContent=S.lev;
+<<<<<<< HEAD
+=======
+  updateMinBar();
+>>>>>>> 3845559 (add api)
 }
 
 loadStoredKeys();
