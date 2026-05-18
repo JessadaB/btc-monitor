@@ -418,9 +418,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           </div>
           <span class="sig-strength str-none" id="sig-strength">Neutral</span>
           <button class="sig-apply-btn" id="sig-apply-btn" onclick="applySignal()" style="display:none">Apply →</button>
+          <button class="sig-apply-btn" style="background:rgba(171,71,188,.18);color:#AB47BC;margin-left:3px" onclick="analyzePrice()">🔮 Analyze</button>
         </div>
         <div class="ind-grid" id="ind-grid">
           <!-- filled by JS -->
+        </div>
+
+        <!-- Analysis result panel -->
+        <div id="analysis-panel" style="display:none;margin-top:.45rem">
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:8px;padding:.65rem .8rem">
+            <div id="analysis-loading" style="text-align:center;padding:.5rem 0;color:var(--text2);font-size:12px">
+              <span class="spin"></span> Analyzing price action...
+            </div>
+            <div id="analysis-result" style="display:none"></div>
+          </div>
         </div>
         <!-- Signal log + auto-trade row -->
         <div style="display:flex;gap:.5rem;margin-top:.45rem;align-items:flex-start">
