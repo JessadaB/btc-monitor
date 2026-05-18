@@ -269,6 +269,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);
 .tsl:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
 .toggle input:checked+.tsl{background:var(--amber)}
 .toggle input:checked+.tsl:before{transform:translateX(16px)}
+/* ── Alarm & Auto-trade ── */
+.alarm-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem}
+.alarm-lbl{font-size:12px;color:var(--text)}
+.alarm-status{font-size:11px;padding:.3rem .65rem;background:var(--bg3);border-radius:5px;
+  border-left:2px solid var(--border);transition:border-color .3s;margin-top:.4rem}
+.alarm-status.al{border-left-color:var(--green);color:var(--green)}
+.alarm-status.as{border-left-color:var(--red);color:var(--red)}
+input[type=range]{-webkit-appearance:none;flex:1;height:4px;background:var(--bg4);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer}
+.estop-btn{width:100%;background:#8B0000;color:#fff;border:none;border-radius:6px;
+  padding:.55rem;font-size:13px;font-weight:700;cursor:pointer;margin-top:.4rem;letter-spacing:.04em;
+  animation:pulse-r 1.2s infinite}
+.estop-btn:hover{background:#A00000}
+.auto-lbl{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;
+  background:rgba(255,167,38,.2);color:var(--amber);margin-left:3px}
+/* ── Signal log ── */
+.sig-log-entry{display:flex;gap:5px;align-items:center;padding:3px 0;
+  border-bottom:0.5px solid var(--border);font-size:11px;line-height:1.3}
+.sig-log-entry:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -403,6 +422,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);
         <div class="ind-grid" id="ind-grid">
           <!-- filled by JS -->
         </div>
+        <!-- Signal log + auto-trade row -->
+        <div style="display:flex;gap:.5rem;margin-top:.45rem;align-items:flex-start">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem">Recent Signals</div>
+            <div id="sig-log" style="max-height:72px;overflow-y:auto"><span style="color:var(--text3);font-size:11px">Watching...</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">
+            <button id="auto-long-btn" onclick="manualAutoLong()" class="btn btn-long" style="padding:.32rem .9rem;font-size:12px;width:auto">
+              ▲ Auto Long
+            </button>
+            <button id="auto-short-btn" onclick="manualAutoShort()" class="btn btn-short" style="padding:.32rem .9rem;font-size:12px;width:auto">
+              ▼ Auto Short
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -501,6 +535,75 @@ html,body{height:100%;background:var(--bg);color:var(--text);
       <div class="rp-section" id="pane-orders">
         <div class="rp-title">📋 Open Orders <button onclick="loadOrders()">↻</button></div>
         <div id="ord-list"><div class="no-data">Loading...</div></div>
+      </div>
+
+      <!-- ALARM -->
+      <div class="rp-section">
+        <div class="rp-title">🔔 Signal Alarm</div>
+
+        <div class="alarm-row">
+          <span class="alarm-lbl">Enable alarm</span>
+          <label class="toggle"><input type="checkbox" id="alarm-toggle" onchange="toggleAlarm(this.checked)"/><span class="tsl"></span></label>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+          <span style="font-size:11px;color:var(--text2);white-space:nowrap">Trigger at ≥</span>
+          <input type="range" id="alarm-thresh" min="5" max="14" value="10" oninput="alarmCfg.threshold=+this.value;document.getElementById('alarm-thresh-val').textContent=this.value;updateAlarmStatus()"/>
+          <span style="font-size:12px;font-weight:700;color:var(--blue);min-width:24px" id="alarm-thresh-val">10</span>
+          <span style="font-size:11px;color:var(--text3)">/ 14</span>
+        </div>
+
+        <div style="display:flex;gap:.4rem;margin-bottom:.4rem">
+          <button id="sound-btn" class="btn-sm" onclick="toggleSound()" style="flex:1">🔊 Sound: ON</button>
+          <button id="notif-btn" class="btn-sm" onclick="toggleNotif()" style="flex:1">🔔 Browser: OFF</button>
+        </div>
+
+        <div class="alarm-status idle" id="alarm-status">Alarm OFF — enable above</div>
+      </div>
+
+      <!-- AUTO TRADE -->
+      <div class="rp-section">
+        <div class="rp-title" style="color:var(--amber)">
+          🤖 Auto Trade
+          <span id="auto-active-badge" style="display:none" class="auto-lbl">ACTIVE</span>
+          <span style="font-size:9px;color:var(--red);font-weight:700;margin-left:auto">HIGH RISK</span>
+        </div>
+
+        <div class="warn-box" style="margin-bottom:.5rem;font-size:10px">
+          ⚠ Places REAL orders automatically when signal fires. Use Testnet first. Requires running via localhost:8080.
+        </div>
+
+        <div class="alarm-row">
+          <span class="alarm-lbl" style="font-weight:600">Auto Trade Active</span>
+          <label class="toggle"><input type="checkbox" id="auto-toggle" onchange="toggleAutoTrade(this.checked)"/><span class="tsl"></span></label>
+        </div>
+
+        <div class="g2">
+          <div class="frow">
+            <label class="lbl">USDT per trade</label>
+            <input class="inp" id="auto-amount" type="number" value="3" min="1" placeholder="3" oninput="updateAutoCfg()"/>
+          </div>
+          <div class="frow">
+            <label class="lbl">Min score (/ 14)</label>
+            <input class="inp" id="auto-thresh" type="number" value="10" min="5" max="14" oninput="updateAutoCfg()"/>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="frow">
+            <label class="lbl">Auto SL %</label>
+            <input class="inp" id="auto-sl-pct" type="number" value="1" step="0.1" min="0.2" placeholder="1.0" oninput="updateAutoCfg()"/>
+          </div>
+          <div class="frow">
+            <label class="lbl">Cooldown (sec)</label>
+            <input class="inp" id="auto-cooldown" type="number" value="60" min="30" placeholder="60" oninput="updateAutoCfg()"/>
+          </div>
+        </div>
+
+        <div class="alarm-status idle" id="auto-status">Auto trade: OFF</div>
+
+        <button class="estop-btn" id="estop-btn" onclick="emergencyStop()" style="display:none">
+          🛑 EMERGENCY STOP — Cancel All Orders
+        </button>
       </div>
 
       <!-- SETTINGS -->
@@ -1429,6 +1532,251 @@ function init(){
 
 loadStoredKeys();
 if(S.apiKey&&S.secretKey)init();
+
+/* ══════════════════════════════════
+   ALARM SYSTEM
+══════════════════════════════════ */
+let alarmCfg={enabled:false,sound:true,browser:false,threshold:10,lastType:null,lastTime:0};
+let audioCTX=null;
+
+function toggleAlarm(on){
+  alarmCfg.enabled=on;
+  updateAlarmStatus();
+  if(!on){
+    const el=document.getElementById('alarm-status');
+    el.textContent='Alarm OFF — enable above';
+    el.className='alarm-status idle';
+  }
+}
+
+function updateAlarmStatus(){
+  if(!alarmCfg.enabled)return;
+  const el=document.getElementById('alarm-status');
+  el.textContent=`Watching ${S.activeCoin.label} · fires at ≥ ${alarmCfg.threshold}/14 pts`;
+  el.className='alarm-status idle';
+}
+
+function toggleSound(){
+  alarmCfg.sound=!alarmCfg.sound;
+  // Warm up AudioContext on user gesture
+  if(alarmCfg.sound&&!audioCTX){audioCTX=new(window.AudioContext||window.webkitAudioContext)();}
+  document.getElementById('sound-btn').textContent=`🔊 Sound: ${alarmCfg.sound?'ON':'OFF'}`;
+}
+
+async function toggleNotif(){
+  if(!alarmCfg.browser){
+    if(!('Notification' in window)){toast('Browser notifications not supported','err');return;}
+    const p=await Notification.requestPermission();
+    alarmCfg.browser=p==='granted';
+    if(!alarmCfg.browser){toast('Notifications blocked in browser settings','err');return;}
+  }else alarmCfg.browser=false;
+  document.getElementById('notif-btn').textContent=`🔔 Browser: ${alarmCfg.browser?'ON':'OFF'}`;
+}
+
+function playAlarm(type){
+  try{
+    const ctx=audioCTX||(audioCTX=new(window.AudioContext||window.webkitAudioContext)());
+    if(ctx.state==='suspended')ctx.resume();
+    // LONG = ascending C-E-G chord, SHORT = descending G-E-C
+    const freqs=type==='LONG'?[523.25,659.25,783.99]:[783.99,659.25,523.25];
+    freqs.forEach((freq,i)=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=freq;
+      const t=ctx.currentTime+i*0.22;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.4,t+0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+      osc.start(t);osc.stop(t+0.45);
+    });
+  }catch(e){}
+}
+
+function triggerAlarm(sig){
+  const score=sig.type==='LONG'?sig.bullTotal:sig.bearTotal;
+  const now=Date.now();
+  if(sig.type===alarmCfg.lastType&&now-alarmCfg.lastTime<90000)return;
+  alarmCfg.lastType=sig.type;alarmCfg.lastTime=now;
+
+  // Visual flash on signal panel
+  const sp=document.getElementById('sig-panel');
+  const fc=sig.type==='LONG'?'rgba(38,166,154,.18)':'rgba(239,83,80,.18)';
+  sp.style.transition='background .15s';sp.style.background=fc;
+  setTimeout(()=>sp.style.background='',800);
+  setTimeout(()=>{sp.style.background=fc;setTimeout(()=>sp.style.background='',400);},1000);
+
+  // Status
+  const el=document.getElementById('alarm-status');
+  el.textContent=`🔔 ${sig.type==='LONG'?'▲':'▼'} ${sig.type} ALARM — ${S.activeCoin.label} · ${score}/14 · ${new Date().toLocaleTimeString('en-GB')}`;
+  el.className='alarm-status '+(sig.type==='LONG'?'al':'as');
+
+  if(alarmCfg.sound)playAlarm(sig.type);
+
+  if(alarmCfg.browser&&Notification.permission==='granted'){
+    new Notification(`${sig.type==='LONG'?'▲':'▼'} ${sig.type} Signal — ${S.activeCoin.label}`,{
+      body:`Score ${score}/14 · ${sig.strength} · ${new Date().toLocaleTimeString('en-GB')}`,
+      tag:'signal-'+sig.type
+    });
+  }
+  toast(`🔔 ${sig.type} SIGNAL ${score}/14 — ${S.activeCoin.label}`,sig.type==='LONG'?'ok':'err');
+}
+
+function checkAlarm(sig){
+  if(!alarmCfg.enabled||sig.type==='NEUTRAL')return;
+  const score=sig.type==='LONG'?sig.bullTotal:sig.bearTotal;
+  if(score>=alarmCfg.threshold)triggerAlarm(sig);
+}
+
+/* ══════════════════════════════════
+   AUTO TRADE
+══════════════════════════════════ */
+let autoCfg={enabled:false,amount:3,threshold:10,slPct:1,cooldown:60,lastTime:0,lastType:null};
+let autoTimer=null;
+
+function toggleAutoTrade(on){
+  if(on&&!confirm(`⚠️ AUTO TRADE — REAL MONEY\n\nThis places MARKET orders automatically.\n\nCoin: ${S.activeCoin.label}\nAmount: $${autoCfg.amount} USDT\nMin signal: ${autoCfg.threshold}/14\nSL: ${autoCfg.slPct}% · TP: ${autoCfg.slPct*3}% (3R)\nCooldown: ${autoCfg.cooldown}s\n\nAre you sure?`)){
+    document.getElementById('auto-toggle').checked=false;return;
+  }
+  autoCfg.enabled=on;
+  document.getElementById('estop-btn').style.display=on?'':'none';
+  document.getElementById('auto-active-badge').style.display=on?'':'none';
+  if(on){clearInterval(autoTimer);autoTimer=setInterval(updateAutoStatus,1000);}
+  else{clearInterval(autoTimer);}
+  updateAutoStatus();
+}
+
+function updateAutoCfg(){
+  autoCfg.amount=parseFloat(document.getElementById('auto-amount').value)||3;
+  autoCfg.threshold=parseInt(document.getElementById('auto-thresh').value)||10;
+  autoCfg.slPct=parseFloat(document.getElementById('auto-sl-pct').value)||1;
+  autoCfg.cooldown=parseInt(document.getElementById('auto-cooldown').value)||60;
+}
+
+function updateAutoStatus(){
+  const el=document.getElementById('auto-status');
+  if(!autoCfg.enabled){el.textContent='Auto trade: OFF';el.className='alarm-status idle';return;}
+  const remain=Math.max(0,Math.ceil((autoCfg.lastTime+autoCfg.cooldown*1000-Date.now())/1000));
+  if(remain>0){
+    el.textContent=`⏳ Cooldown: ${remain}s — next trade in ${remain}s`;
+    el.className='alarm-status idle';
+  }else{
+    el.textContent=`✅ Ready — watching for ≥${autoCfg.threshold}/14 on ${S.activeCoin.label}`;
+    el.className='alarm-status al';
+  }
+}
+
+async function execAutoTrade(side,sig){
+  const sym=S.activeCoin.sym,price=S.livePrice;
+  if(!price){toast('No live price — cannot auto-trade','err');return;}
+  const notional=autoCfg.amount*S.lev;
+  const prec=S.activeCoin.prec;
+  const rawQty=notional/price;
+  const qty=prec===0?Math.floor(rawQty):parseFloat(rawQty.toFixed(prec));
+  if(!qty){toast('Qty = 0 — increase auto amount or leverage','err');return;}
+  const closeSide=side==='BUY'?'SELL':'BUY';
+  const slP=side==='BUY'?price*(1-autoCfg.slPct/100):price*(1+autoCfg.slPct/100);
+  const tpP=side==='BUY'?price+Math.abs(price-slP)*3:price-Math.abs(price-slP)*3;
+  const dp=pDP(sym);
+  autoCfg.lastTime=Date.now();autoCfg.lastType=side==='BUY'?'LONG':'SHORT';
+  updateAutoStatus();
+  try{
+    await api('POST','/fapi/v1/order',{symbol:sym,side,type:'MARKET',quantity:qty});
+    const res=await placeTPSL(sym,closeSide,slP.toFixed(dp),tpP.toFixed(dp));
+    const lbl=side==='BUY'?'LONG':'SHORT';
+    toast(`🤖 Auto ${lbl}: ${qty} ${sym} · ${res.join(' · ')}`,'ok');
+    addSigLog({...sig,autoTraded:true});
+    if(alarmCfg.sound)playAlarm(lbl);
+    setTimeout(loadAccount,2000);
+  }catch(e){
+    toast('Auto-trade error: '+e.message,'err');
+    document.getElementById('auto-status').textContent='⚠ Error: '+e.message;
+    document.getElementById('auto-status').className='alarm-status as';
+  }
+}
+
+async function checkAutoTrade(sig){
+  if(!autoCfg.enabled||sig.type==='NEUTRAL')return;
+  const score=sig.type==='LONG'?sig.bullTotal:sig.bearTotal;
+  if(score<autoCfg.threshold)return;
+  const now=Date.now();
+  if(now-autoCfg.lastTime<autoCfg.cooldown*1000)return;
+  if(sig.type===autoCfg.lastType&&now-autoCfg.lastTime<120000)return;
+  await execAutoTrade(sig.type==='LONG'?'BUY':'SELL',sig);
+}
+
+// Manual trigger buttons (uses current live signal settings)
+window.manualAutoLong=async function(){
+  if(!confirm(`Place LONG order now?\n\nCoin: ${S.activeCoin.label}\nAmount: $${autoCfg.amount} USDT\nLeverage: ${S.lev}x\nSL: ${autoCfg.slPct}%`))return;
+  await execAutoTrade('BUY',lastSignal||{type:'LONG',bullTotal:0,strength:'Manual'});
+};
+window.manualAutoShort=async function(){
+  if(!confirm(`Place SHORT order now?\n\nCoin: ${S.activeCoin.label}\nAmount: $${autoCfg.amount} USDT\nLeverage: ${S.lev}x\nSL: ${autoCfg.slPct}%`))return;
+  await execAutoTrade('SELL',lastSignal||{type:'SHORT',bearTotal:0,strength:'Manual'});
+};
+
+async function emergencyStop(){
+  if(!confirm('🛑 EMERGENCY STOP\n\nCancel ALL open orders for ALL symbols?\n\nPositions remain open — you must close them manually.\n\nContinue?'))return;
+  let cancelled=0;
+  for(const coin of COINS){
+    try{await api('DELETE','/fapi/v1/allOpenOrders',{symbol:coin.sym});cancelled++;}catch(e){}
+  }
+  autoCfg.enabled=false;
+  document.getElementById('auto-toggle').checked=false;
+  document.getElementById('estop-btn').style.display='none';
+  document.getElementById('auto-active-badge').style.display='none';
+  clearInterval(autoTimer);updateAutoStatus();
+  toast(`🛑 Cancelled orders on ${cancelled} symbols`,'ok');
+  setTimeout(loadAccount,1500);
+}
+
+/* ══════════════════════════════════
+   SIGNAL LOG
+══════════════════════════════════ */
+const sigLog=[];
+function addSigLog(sig){
+  if(!sig||sig.type==='NEUTRAL')return;
+  const score=sig.type==='LONG'?sig.bullTotal:sig.bearTotal;
+  sigLog.unshift({
+    time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+    coin:S.activeCoin.label,type:sig.type,score,strength:sig.strength,auto:sig.autoTraded||false
+  });
+  if(sigLog.length>15)sigLog.pop();
+  renderSigLog();
+}
+function renderSigLog(){
+  const el=document.getElementById('sig-log');if(!el)return;
+  if(!sigLog.length){el.innerHTML='<span style="color:var(--text3);font-size:11px">No signals fired yet</span>';return;}
+  el.innerHTML=sigLog.map(s=>{
+    const col=s.type==='LONG'?'var(--green)':'var(--red)';
+    const arrow=s.type==='LONG'?'▲':'▼';
+    const auto=s.auto?`<span class="auto-lbl">AUTO</span>`:'';
+    return `<div class="sig-log-entry">
+      <span style="color:var(--text3);min-width:32px;flex-shrink:0">${s.time}</span>
+      <span style="color:var(--text2);min-width:30px;flex-shrink:0">${s.coin}</span>
+      <span style="color:${col};font-weight:600;min-width:46px;flex-shrink:0">${arrow} ${s.type}</span>
+      <span style="color:var(--text2)">${s.score}/14</span>
+      <span style="color:var(--text3);flex:1">${s.strength}</span>
+      ${auto}
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════
+   HOOK INTO renderSignal
+══════════════════════════════════ */
+const _origRenderSignal=renderSignal;
+window.renderSignal=function(sig){
+  _origRenderSignal(sig);
+  // Log new strong signals
+  const score=sig.type==='LONG'?sig.bullTotal:sig.type==='SHORT'?sig.bearTotal:0;
+  if(sig.type!=='NEUTRAL'&&score>0){
+    const last=sigLog[0];
+    const isDiff=!last||last.type!==sig.type||last.coin!==S.activeCoin.label||Date.now()-new Date().setHours(...last.time.split(':').map(Number),0,0)>120000;
+    if(isDiff)addSigLog(sig);
+  }
+  checkAlarm(sig);
+  checkAutoTrade(sig);
+};
 </script>
 </body>
 </html>
