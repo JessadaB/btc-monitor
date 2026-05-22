@@ -523,6 +523,133 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
     <div class="astatus" id="al-status">Alarm OFF</div>
   </div>
 
+  <!-- ══════════════════════════════════
+       📡 15m SIGNAL MONITOR
+  ══════════════════════════════════ -->
+  <div class="rs" id="monitor-section" style="transition:background .3s">
+    <div class="rs-title">
+      📡 15m Signal Monitor
+      <span id="mon-badge" style="display:none;font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(38,166,154,.2);color:var(--green);margin-left:4px">LIVE</span>
+    </div>
+
+    <!-- Enable toggle -->
+    <div class="alarm-row">
+      <span class="alarm-lbl">Monitor Active</span>
+      <label class="toggle"><input type="checkbox" id="mon-toggle" onchange="toggleMonitor(this.checked)"/><span class="tsl"></span></label>
+    </div>
+
+    <!-- Timeframe selector -->
+    <div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.4rem">
+      <span style="font-size:10px;color:var(--text2)">Timeframe:</span>
+      <button class="mini-btn" id="mtf-15m" onclick="setMonitorTF('15m',this)" style="background:var(--bg5);color:var(--text)">15m</button>
+      <button class="mini-btn" id="mtf-1h" onclick="setMonitorTF('1h',this)">1h</button>
+      <button class="mini-btn" id="mtf-4h" onclick="setMonitorTF('4h',this)">4h</button>
+    </div>
+
+    <!-- Score threshold -->
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+      <span style="font-size:10px;color:var(--text2);white-space:nowrap">Alert at ≥</span>
+      <input type="range" id="mon-thresh" min="5" max="14" value="10" oninput="monCfg.threshold=+this.value;document.getElementById('mon-tv').textContent=this.value"/>
+      <b id="mon-tv" style="font-size:11px;font-weight:700;color:var(--blue);min-width:20px">10</b>
+      <span style="font-size:10px;color:var(--text3)">/ 14</span>
+    </div>
+
+    <!-- Status -->
+    <div class="astatus" id="mon-status">Monitor OFF — enable above</div>
+
+    <!-- Live signal display (hidden until active) -->
+    <div id="mon-signal" style="display:none;margin-top:.45rem">
+      <!-- Verdict + bar -->
+      <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+        <span id="mon-verdict" style="font-size:13px;font-weight:700;color:var(--text2)">— No Signal</span>
+        <div style="flex:1;height:4px;background:var(--bg5);border-radius:2px;overflow:hidden">
+          <div id="mon-bar" style="height:4px;border-radius:2px;width:0%;background:var(--border);transition:width .5s,background .5s"></div>
+        </div>
+        <span id="mon-score" style="font-size:11px;color:var(--text2);font-weight:600">0/14</span>
+        <span id="mon-str" style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--bg5);color:var(--text3)">Neutral</span>
+      </div>
+      <!-- Indicator dots (10 icons, pass/fail) -->
+      <div id="mon-dots" style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:.3rem"></div>
+      <!-- Last alert time -->
+      <div id="mon-last" style="font-size:9px;color:var(--text3);margin-bottom:.3rem"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div style="display:flex;gap:.3rem;margin-top:.4rem">
+      <button class="mini-btn" onclick="manualCheckMonitor()" style="flex:1">↻ Check Now</button>
+      <button class="mini-btn" onclick="testMonitorAlarm()" style="flex:1">🔊 Test</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       💬 WHATSAPP ALERTS (via Callmebot)
+  ══════════════════════════════════ -->
+  <div class="rs" id="wa-section">
+    <div class="rs-title">
+      💬 WhatsApp Alerts
+      <span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(38,166,154,.15);color:var(--green);margin-left:4px">FREE via Callmebot</span>
+    </div>
+
+    <!-- Setup steps -->
+    <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:.5rem .65rem;margin-bottom:.5rem;border-left:2px solid var(--blue)">
+      <div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem">One-time setup (free, 2 minutes)</div>
+      <div style="font-size:10px;color:var(--text2);line-height:1.8">
+        1️⃣ Save <b style="color:var(--text)">+34 644 69 48 18</b> in WhatsApp contacts<br>
+        2️⃣ Send this message to that number:<br>
+        <code style="background:var(--bg5);padding:2px 6px;border-radius:3px;color:var(--yellow);font-size:10px">I allow callmebot to send me messages</code><br>
+        3️⃣ You receive your API key via WhatsApp<br>
+        4️⃣ Paste your number + key below ↓
+      </div>
+    </div>
+
+    <!-- Phone number -->
+    <div class="frow">
+      <label class="lbl">Your WhatsApp Number <span style="color:var(--text3)">(with country code)</span></label>
+      <input class="inp" id="wa-phone" type="tel" placeholder="+66812345678" oninput="saveWACfg()"/>
+    </div>
+
+    <!-- API Key -->
+    <div class="frow">
+      <label class="lbl">Callmebot API Key</label>
+      <input class="inp" id="wa-apikey" type="text" placeholder="e.g. 1234567" oninput="saveWACfg()"/>
+    </div>
+
+    <!-- Enable toggle -->
+    <div class="alarm-row">
+      <span class="alarm-lbl">WhatsApp Alerts On</span>
+      <label class="toggle"><input type="checkbox" id="wa-toggle" onchange="toggleWA(this.checked)"/><span class="tsl"></span></label>
+    </div>
+
+    <!-- Score threshold -->
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+      <span style="font-size:10px;color:var(--text2);white-space:nowrap">Send at ≥</span>
+      <input type="range" id="wa-thresh" min="5" max="14" value="10" oninput="waCfg.minScore=+this.value;document.getElementById('wa-tv').textContent=this.value;saveWACfg()"/>
+      <b id="wa-tv" style="font-size:11px;font-weight:700;color:var(--green);min-width:20px">10</b>
+      <span style="font-size:10px;color:var(--text3)">/ 14</span>
+    </div>
+
+    <!-- What to send -->
+    <div style="display:flex;gap:.35rem;margin-bottom:.4rem">
+      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" id="wa-main" checked onchange="saveWACfg()"/> Main signal
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" id="wa-15m" checked onchange="saveWACfg()"/> 15m monitor
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" id="wa-auto" onchange="saveWACfg()"/> Auto trade
+      </label>
+    </div>
+
+    <!-- Status -->
+    <div class="astatus" id="wa-status">WhatsApp OFF</div>
+
+    <!-- Test button -->
+    <button class="mini-btn" style="width:100%;margin-top:.4rem;padding:.4rem" onclick="testWA()">
+      📤 Send Test Message to WhatsApp
+    </button>
+  </div>
+
   <!-- AUTO TRADE -->
   <div class="rs">
     <div class="rs-title" style="color:var(--amber)">🤖 Auto Trade <span id="at-badge" style="display:none;font-size:8px;font-weight:700;padding:1px 5px;border-radius:2px;background:rgba(255,167,38,.2);color:var(--amber);margin-left:4px">ACTIVE</span><span style="font-size:9px;color:var(--red);margin-left:auto">HIGH RISK</span></div>
