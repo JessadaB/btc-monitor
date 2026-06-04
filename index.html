@@ -582,72 +582,165 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
   </div>
 
   <!-- ══════════════════════════════════
-       💬 WHATSAPP ALERTS (via Callmebot)
+       📲 MULTI-CHANNEL ALERTS
   ══════════════════════════════════ -->
-  <div class="rs" id="wa-section">
-    <div class="rs-title">
-      💬 WhatsApp Alerts
-      <span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(38,166,154,.15);color:var(--green);margin-left:4px">FREE via Callmebot</span>
+  <div class="rs" id="notif-section">
+    <div class="rs-title">📲 Alert Notifications</div>
+
+    <!-- Channel tabs -->
+    <div style="display:flex;gap:0;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:.55rem">
+      <button class="sb on" id="ntab-line" onclick="switchNotifTab('line',this)" style="font-size:11px;padding:.35rem 0">
+        🟢 LINE
+      </button>
+      <button class="sb" id="ntab-tg" onclick="switchNotifTab('tg',this)" style="font-size:11px;padding:.35rem 0">
+        ✈️ Telegram
+      </button>
+      <button class="sb" id="ntab-wa" onclick="switchNotifTab('wa',this)" style="font-size:11px;padding:.35rem 0">
+        💬 WhatsApp
+      </button>
     </div>
 
-    <!-- Setup steps -->
-    <div style="background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:.5rem .65rem;margin-bottom:.5rem;border-left:2px solid var(--blue)">
-      <div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem">One-time setup (free, 2 minutes)</div>
-      <div style="font-size:10px;color:var(--text2);line-height:1.8">
-        1️⃣ Save <b style="color:var(--text)">+34 644 69 48 18</b> in WhatsApp contacts<br>
-        2️⃣ Send this message to that number:<br>
-        <code style="background:var(--bg5);padding:2px 6px;border-radius:3px;color:var(--yellow);font-size:10px">I allow callmebot to send me messages</code><br>
-        3️⃣ You receive your API key via WhatsApp<br>
-        4️⃣ Paste your number + key below ↓
+    <!-- ─── LINE MESSAGING API ─── -->
+    <div id="np-line">
+      <div style="background:rgba(0,185,0,.07);border:0.5px solid rgba(0,185,0,.25);border-radius:6px;padding:.5rem .65rem;margin-bottom:.5rem;border-left:2px solid #00B900">
+        <div style="font-size:9px;font-weight:700;color:#00B900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem">LINE Messaging API — Replaces LINE Notify (shut down Mar 2025)</div>
+        <div style="font-size:10px;color:var(--text2);line-height:1.9">
+          <b style="color:var(--text)">Step 1 — Create Bot (3 min):</b><br>
+          1️⃣ Go to <b style="color:var(--yellow)">developers.line.biz/console</b><br>
+          2️⃣ Create Provider → Create Channel → <b style="color:var(--text)">Messaging API</b><br>
+          3️⃣ Messaging API tab → <b style="color:var(--text)">Issue Channel Access Token</b> (copy it)<br>
+          4️⃣ Basic settings → copy your <b style="color:var(--text)">User ID</b> (starts with U)<br>
+          5️⃣ Add your bot as a LINE friend (scan QR in channel settings)<br><br>
+          <b style="color:var(--text)">Step 2 — CORS Proxy (free Cloudflare Worker):</b><br>
+          <span id="cf-instructions" style="display:none">
+            1️⃣ Go to <b style="color:var(--yellow)">cloudflare.com</b> → Sign up free → Workers &amp; Pages → Create<br>
+            2️⃣ Paste this worker code → Deploy:<br>
+            <div style="background:var(--bg5);border-radius:4px;padding:.4rem .55rem;margin:.25rem 0;font-family:monospace;font-size:9px;color:var(--yellow);line-height:1.7;user-select:all">
+              addEventListener('fetch',e=>e.respondWith(handle(e.request)));<br>
+              async function handle(req){<br>
+              &nbsp;if(req.method==='OPTIONS')return new Response(null,{headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST','Access-Control-Allow-Headers':'Content-Type'}});<br>
+              &nbsp;const{token,userId,msg}=await req.json();<br>
+              &nbsp;const r=await fetch('https://api.line.me/v2/bot/message/push',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({to:userId,messages:[{type:'text',text:msg}]})});<br>
+              &nbsp;return new Response(JSON.stringify({ok:r.ok}),{headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});<br>
+              }
+            </div>
+            3️⃣ Copy your Worker URL (e.g. <code style="color:var(--blue);font-size:9px">your-name.workers.dev</code>)<br>
+            4️⃣ Paste it in the "Worker URL" field below
+          </span>
+          <button onclick="document.getElementById('cf-instructions').style.display=document.getElementById('cf-instructions').style.display==='none'?'':'none';this.textContent=this.textContent==='▼ Show Cloudflare setup'?'▲ Hide':'▼ Show Cloudflare setup'" style="font-size:9px;background:rgba(255,167,38,.1);border:0.5px solid rgba(255,167,38,.3);color:var(--amber);border-radius:4px;padding:2px 7px;cursor:pointer;margin-top:.2rem">▼ Show Cloudflare setup</button>
+        </div>
+      </div>
+
+      <div class="frow">
+        <label class="lbl">Channel Access Token</label>
+        <input class="inp" id="line-token" type="password" placeholder="Paste your Channel Access Token..." oninput="saveNotifCfg()"/>
+      </div>
+      <div class="frow">
+        <label class="lbl">Your LINE User ID <span style="color:var(--text3)">(starts with U...)</span></label>
+        <input class="inp" id="line-userid" type="text" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" oninput="saveNotifCfg()"/>
+      </div>
+      <div class="frow">
+        <label class="lbl">Cloudflare Worker URL <span style="color:var(--text3)">(optional but recommended for CORS)</span></label>
+        <input class="inp" id="line-worker" type="text" placeholder="https://your-worker.workers.dev" oninput="saveNotifCfg()"/>
+      </div>
+
+      <div class="alarm-row">
+        <span class="alarm-lbl">LINE Alerts ON</span>
+        <label class="toggle"><input type="checkbox" id="line-toggle" onchange="toggleNotifCh('line',this.checked)"/><span class="tsl"></span></label>
+      </div>
+      <div style="display:flex;gap:.35rem;margin-top:.4rem">
+        <button class="mini-btn" style="flex:1" onclick="testNotifCh('line')">📤 Send Test to LINE</button>
+        <button class="mini-btn" onclick="getLineUserId()">🔍 Get User ID</button>
+      </div>
+      <div class="astatus" id="line-status" style="margin-top:.4rem">LINE: OFF</div>
+    </div>
+
+    <!-- ─── TELEGRAM ─── -->
+    <div id="np-tg" style="display:none">
+      <div style="background:rgba(0,136,204,.08);border:0.5px solid rgba(0,136,204,.25);border-radius:6px;padding:.5rem .65rem;margin-bottom:.5rem;border-left:2px solid #0088CC">
+        <div style="font-size:9px;font-weight:700;color:#0088CC;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem">
+          Setup — Free, Works everywhere
+        </div>
+        <div style="font-size:10px;color:var(--text2);line-height:1.85">
+          1️⃣ Open Telegram → message <b style="color:var(--text)">@BotFather</b><br>
+          2️⃣ Send <code style="background:var(--bg5);padding:1px 5px;border-radius:3px;color:var(--yellow)">/newbot</code> → follow steps → copy <b style="color:var(--text)">Bot Token</b><br>
+          3️⃣ Message your bot once (any text)<br>
+          4️⃣ Open: <code style="background:var(--bg5);padding:1px 5px;border-radius:3px;color:var(--yellow);font-size:9px">api.telegram.org/bot{TOKEN}/getUpdates</code><br>
+          5️⃣ Copy your <b style="color:var(--text)">chat.id</b> number from the response
+        </div>
+      </div>
+      <div class="g2">
+        <div class="frow">
+          <label class="lbl">Bot Token</label>
+          <input class="inp" id="tg-token" type="password" placeholder="123456:ABC-DEF..." oninput="saveNotifCfg()"/>
+        </div>
+        <div class="frow">
+          <label class="lbl">Chat ID</label>
+          <input class="inp" id="tg-chatid" type="text" placeholder="e.g. 987654321" oninput="saveNotifCfg()"/>
+        </div>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-lbl">Telegram Alerts ON</span>
+        <label class="toggle"><input type="checkbox" id="tg-toggle" onchange="toggleNotifCh('tg',this.checked)"/><span class="tsl"></span></label>
+      </div>
+      <div style="display:flex;gap:.35rem;margin-top:.4rem">
+        <button class="mini-btn" style="flex:1" onclick="testNotifCh('tg')">📤 Send Test to Telegram</button>
+      </div>
+      <div class="astatus" id="tg-status" style="margin-top:.4rem">Telegram: OFF</div>
+    </div>
+
+    <!-- ─── WHATSAPP (Callmebot) ─── -->
+    <div id="np-wa" style="display:none">
+      <div style="background:rgba(37,211,102,.07);border:0.5px solid rgba(37,211,102,.2);border-radius:6px;padding:.5rem .65rem;margin-bottom:.5rem;border-left:2px solid #25D166">
+        <div style="font-size:9px;font-weight:700;color:#25D166;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem">
+          Setup via Callmebot (Free)
+        </div>
+        <div style="font-size:10px;color:var(--text2);line-height:1.85">
+          1️⃣ Save <b style="color:var(--text)">+34 644 69 48 18</b> in WhatsApp<br>
+          2️⃣ Send exactly: <code style="background:var(--bg5);padding:1px 5px;border-radius:3px;color:var(--yellow);font-size:9px">I allow callmebot to send me messages</code><br>
+          3️⃣ Wait up to <b style="color:var(--text)">10 minutes</b> for reply with your API key<br>
+          ⚠️ If no reply: service may be down — use LINE instead
+        </div>
+      </div>
+      <div class="frow">
+        <label class="lbl">Phone Number (with country code)</label>
+        <input class="inp" id="wa-phone" type="tel" placeholder="+66812345678" oninput="saveNotifCfg()"/>
+      </div>
+      <div class="frow">
+        <label class="lbl">Callmebot API Key</label>
+        <input class="inp" id="wa-apikey" type="text" placeholder="e.g. 1234567" oninput="saveNotifCfg()"/>
+      </div>
+      <div class="alarm-row">
+        <span class="alarm-lbl">WhatsApp Alerts ON</span>
+        <label class="toggle"><input type="checkbox" id="wa-toggle" onchange="toggleNotifCh('wa',this.checked)"/><span class="tsl"></span></label>
+      </div>
+      <div style="display:flex;gap:.35rem;margin-top:.4rem">
+        <button class="mini-btn" style="flex:1" onclick="testNotifCh('wa')">📤 Send Test to WhatsApp</button>
+      </div>
+      <div class="astatus" id="wa-status" style="margin-top:.4rem">WhatsApp: OFF</div>
+    </div>
+
+    <!-- Shared settings (all channels) -->
+    <div style="border-top:0.5px solid var(--border);margin-top:.55rem;padding-top:.5rem">
+      <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem">Send alerts for</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="na-main" checked onchange="saveNotifCfg()"/> Main signal
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="na-15m" checked onchange="saveNotifCfg()"/> 15m monitor
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="na-auto" onchange="saveNotifCfg()"/> Auto trade
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-top:.4rem">
+        <span style="font-size:10px;color:var(--text2);white-space:nowrap">Min score</span>
+        <input type="range" id="na-thresh" min="5" max="14" value="10" oninput="notifCfg.minScore=+this.value;document.getElementById('na-tv').textContent=this.value;saveNotifCfg()"/>
+        <b id="na-tv" style="font-size:11px;font-weight:700;color:var(--blue);min-width:20px">10</b>
+        <span style="font-size:10px;color:var(--text3)">/ 14</span>
       </div>
     </div>
-
-    <!-- Phone number -->
-    <div class="frow">
-      <label class="lbl">Your WhatsApp Number <span style="color:var(--text3)">(with country code)</span></label>
-      <input class="inp" id="wa-phone" type="tel" placeholder="+66812345678" oninput="saveWACfg()"/>
-    </div>
-
-    <!-- API Key -->
-    <div class="frow">
-      <label class="lbl">Callmebot API Key</label>
-      <input class="inp" id="wa-apikey" type="text" placeholder="e.g. 1234567" oninput="saveWACfg()"/>
-    </div>
-
-    <!-- Enable toggle -->
-    <div class="alarm-row">
-      <span class="alarm-lbl">WhatsApp Alerts On</span>
-      <label class="toggle"><input type="checkbox" id="wa-toggle" onchange="toggleWA(this.checked)"/><span class="tsl"></span></label>
-    </div>
-
-    <!-- Score threshold -->
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
-      <span style="font-size:10px;color:var(--text2);white-space:nowrap">Send at ≥</span>
-      <input type="range" id="wa-thresh" min="5" max="14" value="10" oninput="waCfg.minScore=+this.value;document.getElementById('wa-tv').textContent=this.value;saveWACfg()"/>
-      <b id="wa-tv" style="font-size:11px;font-weight:700;color:var(--green);min-width:20px">10</b>
-      <span style="font-size:10px;color:var(--text3)">/ 14</span>
-    </div>
-
-    <!-- What to send -->
-    <div style="display:flex;gap:.35rem;margin-bottom:.4rem">
-      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" id="wa-main" checked onchange="saveWACfg()"/> Main signal
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" id="wa-15m" checked onchange="saveWACfg()"/> 15m monitor
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" id="wa-auto" onchange="saveWACfg()"/> Auto trade
-      </label>
-    </div>
-
-    <!-- Status -->
-    <div class="astatus" id="wa-status">WhatsApp OFF</div>
-
-    <!-- Test button -->
-    <button class="mini-btn" style="width:100%;margin-top:.4rem;padding:.4rem" onclick="testWA()">
-      📤 Send Test Message to WhatsApp
-    </button>
   </div>
 
   <!-- AUTO TRADE -->
@@ -694,20 +787,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
    CONFIG
 ════════════════════════════════ */
 const COINS=[
-  {sym:'BTCUSDT', id:'btcusdt',      label:'BTC',  color:'#F7931A',prec:3},
-  {sym:'ETHUSDT', id:'ethusdt',      label:'ETH',  color:'#627EEA',prec:3},
-  {sym:'SOLUSDT', id:'solusdt',      label:'SOL',  color:'#9945FF',prec:2},
-  {sym:'BNBUSDT', id:'bnbusdt',      label:'BNB',  color:'#F3BA2F',prec:2},
-  {sym:'XRPUSDT', id:'xrpusdt',      label:'XRP',  color:'#00AAE4',prec:0},
-  {sym:'DOGEUSDT',id:'dogeusdt',     label:'DOGE', color:'#C2A633',prec:0},
-  {sym:'LINKUSDT',id:'linkusdt',     label:'LINK', color:'#2A5ADA',prec:1},
-  {sym:'AVAXUSDT',id:'avaxusdt',     label:'AVAX', color:'#E84142',prec:1},
-  {sym:'1000PEPEUSDT',id:'1000pepeusdt',label:'PEPE',color:'#4CAF50',prec:0},
-  {sym:'WIFUSDT', id:'wifusdt',      label:'WIF',  color:'#FF6B35',prec:1},
+  /* ── Core Crypto ── */
+  {sym:'BTCUSDT',  id:'btcusdt',       label:'BTC',   color:'#F7931A', prec:3, cat:'core'},
+  {sym:'ETHUSDT',  id:'ethusdt',       label:'ETH',   color:'#627EEA', prec:3, cat:'core'},
+  {sym:'SOLUSDT',  id:'solusdt',       label:'SOL',   color:'#9945FF', prec:2, cat:'core'},
+  /* ── Different L1s ── */
+  {sym:'SUIUSDT',  id:'suiusdt',       label:'SUI',   color:'#4CA3FF', prec:3, cat:'l1'},
+  {sym:'APTUSDT',  id:'aptusdt',       label:'APT',   color:'#2B9461', prec:2, cat:'l1'},
+  {sym:'TONUSDT',  id:'tonusdt',       label:'TON',   color:'#0088CC', prec:3, cat:'l1'},
+  {sym:'NEARUSDT', id:'nearusdt',      label:'NEAR',  color:'#00D179', prec:3, cat:'l1'},
+  {sym:'INJUSDT',  id:'injusdt',       label:'INJ',   color:'#00A3FF', prec:2, cat:'l1'},
+  {sym:'SEIUSDT',  id:'seiusdt',       label:'SEI',   color:'#9B2FFF', prec:3, cat:'l1'},
+  /* ── Meme & High Volatility ── */
+  {sym:'1000PEPEUSDT',id:'1000pepeusdt',label:'PEPE', color:'#4CAF50', prec:0, cat:'meme'},
+  {sym:'WIFUSDT',  id:'wifusdt',       label:'WIF',   color:'#FF6B35', prec:3, cat:'meme'},
+  {sym:'1000BONKUSDT',id:'1000bonkusdt',label:'BONK', color:'#FF8C00', prec:0, cat:'meme'},
+  {sym:'POPCATUSDT',id:'popcatusdt',   label:'POPCAT',color:'#FF69B4', prec:3, cat:'meme'},
+  {sym:'TRUMPUSDT', id:'trumpusdt',    label:'TRUMP', color:'#E8352E', prec:2, cat:'meme'},
+  /* ── DeFi / AI ── */
+  {sym:'FETUSDT',  id:'fetusdt',       label:'FET',   color:'#1C84C7', prec:3, cat:'defi'},
+  {sym:'RENDERUSDT',id:'renderusdt',   label:'RNDR',  color:'#E50C12', prec:2, cat:'defi'},
+  {sym:'JUPUSDT',  id:'jupusdt',       label:'JUP',   color:'#7E4CDB', prec:3, cat:'defi'},
+  /* ── Gold-linked (trades on Binance) ── */
+  {sym:'PAXGUSDT', id:'paxgusdt',      label:'PAXG',  color:'#C8A44B', prec:5, cat:'gold'},
 ];
-const MIN_N={BTCUSDT:5,ETHUSDT:5,SOLUSDT:5,BNBUSDT:5,XRPUSDT:5,DOGEUSDT:5,LINKUSDT:5,AVAXUSDT:5,'1000PEPEUSDT':5,WIFUSDT:5};
-const MIN_Q={BTCUSDT:0.001,ETHUSDT:0.001,SOLUSDT:0.1,BNBUSDT:0.01,XRPUSDT:1,DOGEUSDT:1,LINKUSDT:0.1,AVAXUSDT:0.1,'1000PEPEUSDT':1,WIFUSDT:0.1};
-const PDP={BTCUSDT:1,ETHUSDT:2,SOLUSDT:2,BNBUSDT:2,XRPUSDT:4,DOGEUSDT:5,LINKUSDT:3,AVAXUSDT:2,'1000PEPEUSDT':7,WIFUSDT:4};
+const MIN_N={BTCUSDT:5,ETHUSDT:5,SOLUSDT:5,BNBUSDT:5,SUIUSDT:5,APTUSDT:5,TONUSDT:5,NEARUSDT:5,INJUSDT:5,SEIUSDT:5,'1000PEPEUSDT':5,WIFUSDT:5,'1000BONKUSDT':5,POPCATUSDT:5,TRUMPUSDT:5,FETUSDT:5,RENDERUSDT:5,JUPUSDT:5,PAXGUSDT:5};
+const MIN_Q={BTCUSDT:0.001,ETHUSDT:0.001,SOLUSDT:0.1,SUIUSDT:1,APTUSDT:0.1,TONUSDT:0.1,NEARUSDT:0.1,INJUSDT:0.1,SEIUSDT:1,'1000PEPEUSDT':1,WIFUSDT:0.1,'1000BONKUSDT':1,POPCATUSDT:0.1,TRUMPUSDT:0.1,FETUSDT:1,RENDERUSDT:0.1,JUPUSDT:1,PAXGUSDT:0.0001};
+const PDP={BTCUSDT:1,ETHUSDT:2,SOLUSDT:2,SUIUSDT:4,APTUSDT:3,TONUSDT:3,NEARUSDT:3,INJUSDT:2,SEIUSDT:4,'1000PEPEUSDT':7,WIFUSDT:4,'1000BONKUSDT':7,POPCATUSDT:4,TRUMPUSDT:3,FETUSDT:3,RENDERUSDT:2,JUPUSDT:3,PAXGUSDT:2};
 const coinMap={};COINS.forEach(c=>coinMap[c.id]=c);
 
 let S={
@@ -1920,6 +2026,283 @@ function init(){
 
 const ro=new ResizeObserver(()=>{if(S.candles.length)runAll();});
 ro.observe(document.getElementById('chart-wrap'));
+
+/* ════════════════════════════════
+   NOTIFICATION SYSTEM
+   Telegram ✓ direct browser API
+   LINE     ✓ via Cloudflare Worker
+   WhatsApp ✓ via Callmebot
+════════════════════════════════ */
+
+// Config state (loaded from localStorage on init)
+let notifCfg = {
+  tg:   { enabled:false, token:'', chatId:'' },
+  line: { enabled:false, token:'', userId:'', worker:'' },
+  wa:   { enabled:false, phone:'', apikey:'' },
+  minScore: 10,
+  sendMain: true,
+  send15m:  true,
+  sendAuto: false
+};
+
+/* ── Save / Load ── */
+function saveNotifCfg() {
+  notifCfg.tg.token   = document.getElementById('tg-token')?.value.trim()   || notifCfg.tg.token;
+  notifCfg.tg.chatId  = document.getElementById('tg-chatid')?.value.trim()  || notifCfg.tg.chatId;
+  notifCfg.line.token  = document.getElementById('line-token')?.value.trim() || notifCfg.line.token;
+  notifCfg.line.userId = document.getElementById('line-userid')?.value.trim()|| notifCfg.line.userId;
+  notifCfg.line.worker = document.getElementById('line-worker')?.value.trim()|| notifCfg.line.worker;
+  notifCfg.wa.phone    = document.getElementById('wa-phone')?.value.trim()   || notifCfg.wa.phone;
+  notifCfg.wa.apikey   = document.getElementById('wa-apikey')?.value.trim()  || notifCfg.wa.apikey;
+  notifCfg.sendMain = document.getElementById('na-main')?.checked ?? true;
+  notifCfg.send15m  = document.getElementById('na-15m')?.checked  ?? true;
+  notifCfg.sendAuto = document.getElementById('na-auto')?.checked ?? false;
+  localStorage.setItem('notif_cfg_v2', JSON.stringify(notifCfg));
+}
+
+function loadNotifCfg() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('notif_cfg_v2') || '{}');
+    if(saved.tg)   notifCfg.tg   = {...notifCfg.tg,   ...saved.tg};
+    if(saved.line) notifCfg.line = {...notifCfg.line, ...saved.line};
+    if(saved.wa)   notifCfg.wa   = {...notifCfg.wa,   ...saved.wa};
+    if(saved.minScore) notifCfg.minScore = saved.minScore;
+    if(saved.sendMain !== undefined) notifCfg.sendMain = saved.sendMain;
+    if(saved.send15m  !== undefined) notifCfg.send15m  = saved.send15m;
+    if(saved.sendAuto !== undefined) notifCfg.sendAuto = saved.sendAuto;
+  } catch(e) {}
+  // Populate UI fields
+  setTimeout(() => {
+    if(document.getElementById('tg-token'))    document.getElementById('tg-token').value    = notifCfg.tg.token;
+    if(document.getElementById('tg-chatid'))   document.getElementById('tg-chatid').value   = notifCfg.tg.chatId;
+    if(document.getElementById('line-token'))  document.getElementById('line-token').value  = notifCfg.line.token;
+    if(document.getElementById('line-userid')) document.getElementById('line-userid').value = notifCfg.line.userId;
+    if(document.getElementById('line-worker')) document.getElementById('line-worker').value = notifCfg.line.worker;
+    if(document.getElementById('wa-phone'))    document.getElementById('wa-phone').value    = notifCfg.wa.phone;
+    if(document.getElementById('wa-apikey'))   document.getElementById('wa-apikey').value   = notifCfg.wa.apikey;
+    if(document.getElementById('tg-toggle'))   document.getElementById('tg-toggle').checked   = notifCfg.tg.enabled;
+    if(document.getElementById('line-toggle')) document.getElementById('line-toggle').checked = notifCfg.line.enabled;
+    if(document.getElementById('wa-toggle'))   document.getElementById('wa-toggle').checked   = notifCfg.wa.enabled;
+    if(document.getElementById('na-main'))     document.getElementById('na-main').checked   = notifCfg.sendMain;
+    if(document.getElementById('na-15m'))      document.getElementById('na-15m').checked    = notifCfg.send15m;
+    if(document.getElementById('na-auto'))     document.getElementById('na-auto').checked   = notifCfg.sendAuto;
+    if(document.getElementById('na-thresh'))   document.getElementById('na-thresh').value   = notifCfg.minScore;
+    if(document.getElementById('na-tv'))       document.getElementById('na-tv').textContent = notifCfg.minScore;
+    updateAllNotifStatus();
+  }, 400);
+}
+
+/* ── UI helpers ── */
+window.switchNotifTab = function(tab, btn) {
+  ['line','tg','wa'].forEach(t => {
+    document.getElementById('np-'+t).style.display = t===tab ? '' : 'none';
+    document.getElementById('ntab-'+t).className = 'sb' + (t===tab ? ' on' : '');
+  });
+  // Auto-switch to Telegram tab by default
+  saveNotifCfg();
+};
+
+function updateAllNotifStatus() {
+  updateNotifStatus('tg');
+  updateNotifStatus('line');
+  updateNotifStatus('wa');
+}
+
+function updateNotifStatus(ch, msg, ok) {
+  const el = document.getElementById(ch+'-status');
+  if(!el) return;
+  const cfg = notifCfg[ch] || notifCfg.line;
+  if(msg !== undefined) {
+    el.textContent = msg;
+    el.className = 'astatus ' + (ok ? 'al' : 'as');
+    return;
+  }
+  const names = {tg:'Telegram', line:'LINE', wa:'WhatsApp'};
+  const enabled = ch === 'tg' ? notifCfg.tg.enabled : ch === 'line' ? notifCfg.line.enabled : notifCfg.wa.enabled;
+  if(!enabled) { el.textContent = names[ch]+': OFF'; el.className='astatus'; return; }
+  const hasConfig = ch==='tg' ? (notifCfg.tg.token && notifCfg.tg.chatId)
+    : ch==='line' ? (notifCfg.line.token && notifCfg.line.userId)
+    : (notifCfg.wa.phone && notifCfg.wa.apikey);
+  el.textContent = hasConfig ? `${names[ch]}: ✅ Ready — alerts ON` : `${names[ch]}: ⚠ Missing config`;
+  el.className = 'astatus ' + (hasConfig ? 'al' : 'as');
+}
+
+window.toggleNotifCh = function(ch, on) {
+  saveNotifCfg();
+  if(ch==='tg')   notifCfg.tg.enabled   = on;
+  if(ch==='line') notifCfg.line.enabled = on;
+  if(ch==='wa')   notifCfg.wa.enabled   = on;
+  localStorage.setItem('notif_cfg_v2', JSON.stringify(notifCfg));
+  updateNotifStatus(ch);
+};
+
+/* ── SEND FUNCTIONS ── */
+
+// ✈️ TELEGRAM — works directly from browser, no proxy needed
+async function sendTelegram(message) {
+  if(!notifCfg.tg.enabled || !notifCfg.tg.token || !notifCfg.tg.chatId) return false;
+  try {
+    const url = `https://api.telegram.org/bot${notifCfg.tg.token}/sendMessage`;
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: notifCfg.tg.chatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+    const d = await r.json();
+    if(d.ok) {
+      updateNotifStatus('tg', '✅ Telegram: Message sent!', true);
+      setTimeout(() => updateNotifStatus('tg'), 4000);
+      return true;
+    } else {
+      updateNotifStatus('tg', '❌ Telegram error: ' + d.description, false);
+      return false;
+    }
+  } catch(e) {
+    updateNotifStatus('tg', '❌ Telegram failed: ' + e.message, false);
+    return false;
+  }
+}
+
+// 🟢 LINE — via Cloudflare Worker proxy
+async function sendLINE(message) {
+  if(!notifCfg.line.enabled || !notifCfg.line.token || !notifCfg.line.userId) return false;
+  const worker = notifCfg.line.worker;
+  if(!worker) {
+    updateNotifStatus('line', '❌ LINE: Enter Cloudflare Worker URL first', false);
+    return false;
+  }
+  try {
+    const r = await fetch(worker, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token:  notifCfg.line.token,
+        userId: notifCfg.line.userId,
+        msg:    message
+      })
+    });
+    const d = await r.json();
+    if(d.ok) {
+      updateNotifStatus('line', '✅ LINE: Message sent!', true);
+      setTimeout(() => updateNotifStatus('line'), 4000);
+      return true;
+    } else {
+      updateNotifStatus('line', '❌ LINE error — check token/userId', false);
+      return false;
+    }
+  } catch(e) {
+    updateNotifStatus('line', '❌ LINE failed: ' + e.message, false);
+    return false;
+  }
+}
+
+// 💬 WHATSAPP — via Callmebot (no-cors image trick)
+async function sendWhatsApp(message) {
+  if(!notifCfg.wa.enabled || !notifCfg.wa.phone || !notifCfg.wa.apikey) return false;
+  try {
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(notifCfg.wa.phone)}&text=${encodeURIComponent(message)}&apikey=${notifCfg.wa.apikey}`;
+    await fetch(url, { mode: 'no-cors' });
+    updateNotifStatus('wa', '✅ WhatsApp: Request sent — check phone', true);
+    setTimeout(() => updateNotifStatus('wa'), 4000);
+    return true;
+  } catch(e) {
+    updateNotifStatus('wa', '❌ WhatsApp failed: ' + e.message, false);
+    return false;
+  }
+}
+
+// 📨 Send to ALL enabled channels
+async function sendAllNotifs(message) {
+  const results = await Promise.allSettled([
+    sendTelegram(message),
+    sendLINE(message),
+    sendWhatsApp(message)
+  ]);
+  return results.some(r => r.value === true);
+}
+
+/* ── Build alert message ── */
+function buildAlertMsg(sig, source) {
+  const isL = sig.type === 'LONG';
+  const score = isL ? sig.bullTotal : sig.bearTotal;
+  const emoji = isL ? '📈' : '📉';
+  const dir   = isL ? '▲ LONG' : '▼ SHORT';
+  const passing = (sig.indicators||[]).filter(i=>(isL?i.bull:i.bear)>0).map(i=>i.name).join(', ');
+  return `${emoji} <b>${dir} SIGNAL</b>
+
+📌 Coin: <b>${S.coin.label}/USDT</b>
+⏱ Timeframe: <b>${source||S.tf}</b>
+📊 Score: <b>${score}/14</b> — ${sig.strength}
+💰 Price: <b>$${fP(S.price,true)}</b>
+📉 RSI: ${sig.rsi?.toFixed(1)||'—'} | Stoch K:${sig.K?.toFixed(0)||'—'}
+${sig.ob?`🎯 OB Zone: $${fP(sig.ob.lo,true)}–$${fP(sig.ob.hi,true)}`:''}
+✅ Passing: ${passing}
+🕐 Time: ${new Date().toLocaleTimeString('en-GB')} (BKK)
+
+⚡ Binance Terminal Alert`;
+}
+
+/* ── Test buttons ── */
+window.testNotifCh = async function(ch) {
+  saveNotifCfg();
+  const testMsg = `🧪 <b>TEST ALERT</b>
+
+✅ ${ch==='tg'?'Telegram':ch==='line'?'LINE':'WhatsApp'} connected!
+📌 Coin: ${S.coin.label}/USDT
+💰 Price: $${fP(S.price,true)||'—'}
+🕐 ${new Date().toLocaleTimeString('en-GB')} (BKK)
+
+⚡ Binance Terminal — connection verified`;
+
+  toast('📤 Sending test...', 'ok');
+  let ok = false;
+  if(ch==='tg')   ok = await sendTelegram(testMsg);
+  if(ch==='line') ok = await sendLINE(testMsg);
+  if(ch==='wa')   ok = await sendWhatsApp(testMsg);
+
+  if(ok) {
+    toast(`✅ ${ch==='tg'?'Telegram':ch==='line'?'LINE':'WhatsApp'} connected! Check your phone.`, 'ok');
+  } else {
+    toast(`❌ ${ch==='tg'?'Telegram':ch==='line'?'LINE':'WhatsApp'} failed — check config`, 'err');
+  }
+};
+
+window.getLineUserId = function() {
+  toast('Your User ID starts with U — find it in LINE Developers → Basic Settings', 'ok');
+};
+
+/* ── Hook into alarm system ── */
+const _origCheckAlarm = typeof checkAlarm === 'function' ? checkAlarm : null;
+function checkAlarm(sig) {
+  if(!sig||sig.type==='NEUTRAL') return;
+  const score = sig.type==='LONG' ? sig.bullTotal : sig.bearTotal;
+  if(score < alarmCfg.threshold) return;
+  const now = Date.now();
+  if(sig.type===alarmCfg.lastType && now-alarmCfg.lastTime < 90000) return;
+  alarmCfg.lastType = sig.type;
+  alarmCfg.lastTime = now;
+
+  // Visual + sound (existing)
+  const sp = document.getElementById('sig-dash');
+  const fc = sig.type==='LONG'?'rgba(38,166,154,.18)':'rgba(239,83,80,.18)';
+  if(sp){ sp.style.background=fc; setTimeout(()=>sp.style.background='',1000); }
+  const el = document.getElementById('al-status');
+  if(el){ el.textContent=`🔔 ${sig.type==='LONG'?'▲':'▼'} ${sig.type} ${score}/14 @ ${new Date().toLocaleTimeString('en-GB')} — ${S.coin.label}`; el.className='astatus '+(sig.type==='LONG'?'al':'as'); }
+  if(alarmCfg.sound) playAlarm(sig.type);
+  if(alarmCfg.browser && Notification.permission==='granted')
+    new Notification(`${sig.type==='LONG'?'▲':'▼'} ${sig.type} — ${S.coin.label}`,{body:`Score ${score}/14 · ${sig.strength}`});
+  toast(`🔔 ${sig.type} SIGNAL ${score}/14 — ${S.coin.label}`, sig.type==='LONG'?'ok':'err');
+
+  // 📨 Send to all notification channels
+  if(notifCfg.sendMain && score >= notifCfg.minScore) {
+    const msg = buildAlertMsg(sig, S.tf);
+    sendAllNotifs(msg);
+  }
+}
 
 loadKeys();if(S.apiKey&&S.secretKey)init();
 </script>
